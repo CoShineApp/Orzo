@@ -1,27 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
-	import { supabase } from '$lib/supabase';
 	import { formatDuration, formatBytes } from '$lib/utils';
 	import { env } from '$env/dynamic/public';
+	import type { PageData } from './$types';
 
-	interface Clip {
-		id: string;
-		share_code: string;
-		filename: string;
-		b2_file_name: string;
-		file_size: number;
-		duration_seconds: number | null;
-		uploaded_at: string;
-		metadata: any | null;
-		user_id: string | null;
-		device_id: string;
-	}
+	let { data } = $props<{ data: PageData }>();
 
-	let clip = $state<Clip | null>(null);
-	let loading = $state(true);
-	let error = $state<string | null>(null);
-
+	const clip = $derived(data.clip);
 	const shareCode = $derived($page.params.shareCode?.toUpperCase() || '');
 	const videoUrl = $derived(
 		clip && shareCode
@@ -31,42 +16,6 @@
 	const pageUrl = $derived(
 		shareCode ? `https://clips.peppi.app/${shareCode}` : ''
 	);
-
-	onMount(async () => {
-		if (!shareCode || shareCode.length !== 8 || !/^[A-Z0-9]{8}$/.test(shareCode)) {
-			error = 'Invalid share code. Share codes must be exactly 8 alphanumeric characters.';
-			loading = false;
-			return;
-		}
-
-		// Check if Supabase is configured
-		if (!env.PUBLIC_SUPABASE_URL) {
-			error = 'Supabase is not configured. Please set PUBLIC_SUPABASE_URL and PUBLIC_SUPABASE_ANON_KEY environment variables.';
-			loading = false;
-			return;
-		}
-
-		try {
-			const { data, error: fetchError } = await supabase
-				.from('clips')
-				.select('*')
-				.eq('share_code', shareCode)
-				.single();
-
-			if (fetchError) throw fetchError;
-			if (!data) {
-				error = 'Clip not found';
-				loading = false;
-				return;
-			}
-
-			clip = data;
-		} catch (e) {
-			error = e instanceof Error ? e.message : 'Failed to load clip';
-		} finally {
-			loading = false;
-		}
-	});
 </script>
 
 <svelte:head>
@@ -110,21 +59,7 @@
 </svelte:head>
 
 <div class="min-h-screen bg-background text-foreground">
-	{#if loading}
-		<div class="flex items-center justify-center min-h-screen">
-			<div class="text-center">
-				<div class="text-muted-foreground text-lg mb-2">Loading clip...</div>
-				<div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-			</div>
-		</div>
-	{:else if error}
-		<div class="flex items-center justify-center min-h-screen px-4">
-			<div class="text-center max-w-md">
-				<div class="text-destructive text-xl font-semibold mb-2">Error</div>
-				<div class="text-muted-foreground">{error}</div>
-			</div>
-		</div>
-	{:else if clip && videoUrl}
+	{#if clip && videoUrl}
 		<div class="container mx-auto px-4 py-8 max-w-4xl">
 			<!-- Video Player -->
 			<div class="mb-6">
