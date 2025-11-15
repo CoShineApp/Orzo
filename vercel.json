@@ -1,0 +1,9 @@
+{
+	"rewrites": [
+		{
+			"source": "/([A-Z0-9]{8})",
+			"destination": "/$1"
+		}
+	]
+}
+

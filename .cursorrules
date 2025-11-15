@@ -1,0 +1,3 @@
+There is another project at ../Buckwheat/ that is a Svelte Tauri application, you can reference the code at C:\Users\cafebabe\Documents\Peppi\Buckwheat\src for existing components.
+
+Do NOT create custom base components, if you need a component you can install it from ShadCN-Svelte using `bun x shadcn-svelte@latest add <component>` 
