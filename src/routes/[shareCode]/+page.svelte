@@ -28,6 +28,9 @@
 			? `${env.PUBLIC_CLIPS_CDN_URL || 'https://peppi-clips-cdn.peppiapp.workers.dev'}/${shareCode}/${clip.filename}`
 			: null
 	);
+	const pageUrl = $derived(
+		shareCode ? `https://clips.peppi.app/${shareCode}` : ''
+	);
 
 	onMount(async () => {
 		if (!shareCode || shareCode.length !== 8 || !/^[A-Z0-9]{8}$/.test(shareCode)) {
@@ -70,12 +73,39 @@
 	<title>{clip ? `${clip.filename} - Clips` : 'Clip Viewer - Clips.peppi.app'}</title>
 	{#if clip}
 		<meta name="description" content={`View clip ${clip.share_code} - ${clip.filename}`} />
+		
+		<!-- Open Graph / Discord -->
 		<meta property="og:title" content={clip.filename} />
-		<meta property="og:description" content={`Clip shared via Clips.peppi.app`} />
+		<meta property="og:description" content={`Watch clip ${clip.share_code} on Clips.peppi.app`} />
 		<meta property="og:type" content="video.other" />
+		<meta property="og:site_name" content="Clips.peppi.app" />
+		{#if pageUrl}
+			<meta property="og:url" content={pageUrl} />
+		{/if}
 		{#if videoUrl}
 			<meta property="og:video" content={videoUrl} />
+			<meta property="og:video:secure_url" content={videoUrl} />
+			<meta property="og:video:type" content="video/mp4" />
+			<meta property="og:video:width" content="1920" />
+			<meta property="og:video:height" content="1080" />
 		{/if}
+		<!-- Fallback image for Discord preview (you can generate a thumbnail later) -->
+		<meta property="og:image" content={`https://clips.peppi.app/og-image.png`} />
+		
+		<!-- Twitter Card -->
+		<meta name="twitter:card" content="player" />
+		<meta name="twitter:title" content={clip.filename} />
+		<meta name="twitter:description" content={`Watch clip ${clip.share_code}`} />
+		{#if videoUrl}
+			<meta name="twitter:player" content={videoUrl} />
+			<meta name="twitter:player:width" content="1920" />
+			<meta name="twitter:player:height" content="1080" />
+		{/if}
+	{:else}
+		<!-- Default meta tags for loading state -->
+		<meta property="og:title" content="Clips.peppi.app" />
+		<meta property="og:description" content="Share and view clips from Peppi" />
+		<meta property="og:type" content="website" />
 	{/if}
 </svelte:head>
 
@@ -103,7 +133,6 @@
 					class="w-full rounded-lg bg-card"
 					preload="metadata"
 					playsinline
-					webkit-playsinline
 					src={videoUrl}
 				>
 					<track kind="captions" />
